@@ -1,6 +1,6 @@
 # Crypto Charts
 
-A simple React app to view crypto metrics and price time series.
+A fully responsive simple React app to view crypto metrics and price time series.
 
 ## Installation
 
