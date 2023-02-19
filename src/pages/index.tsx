@@ -158,34 +158,38 @@ export default function Index() {
 
       if (dataObj && dataObj.data) {
         setSelectedAssetMetrics(dataObj.data);
+        return true;
       } else {
         setAlertMessage(
           `There was an issue retrieving metrics data for '${asset}'. Please try again.`
         );
         setShowAlert(true);
         setSelectedAssetMetrics(null);
+        return false;
       }
     },
     [messariV1]
   );
 
   const loadAssetData = useCallback(
-    (asset: string) => {
+    async (asset: string) => {
       getAssetTimeSeries(asset);
-      getAssetMetrics(asset);
+      const canPollMetrics = await getAssetMetrics(asset);
 
       if (pollID) {
         clearInterval(pollID);
       }
 
       // Poll for new data hack, websocket or graphql long polling would be ideal
-      setPollID(
-        setInterval(() => {
-          getAssetMetrics(asset);
-        }, 3000)
-      );
+      if (!showAlert && canPollMetrics) {
+        setPollID(
+          setInterval(() => {
+            getAssetMetrics(asset);
+          }, 3000)
+        );
+      }
     },
-    [getAssetMetrics, getAssetTimeSeries, pollID]
+    [getAssetMetrics, getAssetTimeSeries, pollID, showAlert]
   );
 
   useEffect(() => {
@@ -339,7 +343,7 @@ export default function Index() {
             {
               id: `${id}-market-rank`,
               label: "Market Rank",
-              marketRank: `#${marketCap?.rank}`,
+              marketRank: marketCap?.rank ? `#${marketCap?.rank}` : "N/A",
               bold: ["marketRank"],
             },
           ]}
